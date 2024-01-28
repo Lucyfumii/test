@@ -1,0 +1,96 @@
+repeat wait() until game:IsLoaded()
+repeat wait(1) until game:GetService('Players').LocalPlayer.Character
+repeat wait(1) until game:GetService('Players').LocalPlayer.Character:FindFirstChild('HumanoidRootPart')
+
+
+local plr = game:GetService('Players').LocalPlayer
+local VirtualUser = game:GetService("VirtualUser")
+
+
+repeat
+    wait()
+until plr.PlayerGui:FindFirstChild('AreaGui')['Start']
+
+
+clickButton = function(arg)
+    arg.AnchorPoint = Vector2.new(.5, .5)
+    arg.Position = UDim2.new(.5, 0, .5, 0)
+    arg.Size = UDim2.new(999, 999, 999, 999)
+    wait(1)
+    VirtualUser:ClickButton1(Vector2.new(0,0))
+end
+
+
+pcall(function()
+    if plr.PlayerGui:FindFirstChild('AreaGui')['Start'].Visible then
+        print('Founded Button')
+        wait(1)
+        clickButton(plr.PlayerGui:FindFirstChild('AreaGui')['Start'])
+    end
+end)
+
+
+local plr = game.Players.LocalPlayer
+function getmob()
+    local a
+    local b = math.huge
+    for i,v in next,workspace.Stage_Monster:GetChildren() do 
+        if v:IsA("Model") and v.Humanoid.Health > 0 then
+            local c = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position-v.HumanoidRootPart.Position).Magnitude
+            if b > c then 
+                b = c 
+                a = v 
+            end
+        end
+    end
+    return a
+end
+
+
+function ItemDrop()
+    for i,v in next,workspace.Temp_Item:GetChildren() do 
+        if not v:FindFirstChild("Heal") then 
+            return v 
+        end
+    end
+end
+
+
+_G.on = not _G.on 
+spawn(function()
+    while _G.on and task.wait() do 
+        pcall(function()
+            local v = getmob()
+            if v then 
+                local args = {
+                    [1] = {
+                        ["CF"] = CFrame.new(0,0,0),
+                        ["Part"] = v.Head,
+                        ["Owner"] = game:GetService("Players").LocalPlayer,
+                        ["TargetHead"] = true,
+                        ["Character"] = game:GetService("Players").LocalPlayer.Character,
+                        ["Hit"] = v.Head,
+                        ["Target"] = v,
+                        ["position"] = Vector3.new(0,0,0),
+                        ["normal"] = Vector3.new(0,0,0),
+                        ["Damage"] = 0
+                    }
+                }
+                game:GetService("ReplicatedStorage").Remote.CastRemote:FireServer(unpack(args))
+                plr.Character.HumanoidRootPart.CFrame = v.Head.CFrame*CFrame.new(0,10,0)
+            end
+            local b = ItemDrop()
+            if b then 
+                fireproximityprompt(b.Base.Attachment.ProximityPrompt)
+            end
+        end)
+    end
+end)
+spawn(function()
+    while  wait() do 
+        repeat wait() until plr.PlayerGui:FindFirstChild('AreaGui')['ClearFrame'].Visible
+        print('retry...')
+        wait(1)
+        clickButton(plr.PlayerGui:FindFirstChild('AreaGui')['ClearFrame']['LeftButton']['Retry'])
+    end
+end)
